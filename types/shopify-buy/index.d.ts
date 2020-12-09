@@ -1,4 +1,4 @@
-// Type definitions for shopify-buy 2.10
+// Type definitions for shopify-buy 2.11
 // Project: https://github.com/Shopify/js-buy-sdk#readme
 // Definitions by: Martin Köhn <https://github.com/openminder>
 //                 Stephen Traiforos <https://github.com/straiforos>
@@ -6,6 +6,7 @@
 //                 Juan Manuel Incaurgarat <https://github.com/kilinkis>
 //                 Chris Worman <https://github.com/chrisworman-pela>
 //                 Maciej Baron <https://github.com/MaciekBaron>
+//                 Eric Sartorius <https://github.com/EricSSartorius>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 // TypeScript Version: 2.7
 
@@ -95,7 +96,12 @@ declare namespace ShopifyBuy {
         /**
          * Update a line item quantity based on line item id
          */
-        updateLineItem(checkoutId: string | number, lineItems: AttributeInput[]): Promise<Cart>;
+        updateLineItems(checkoutId: string | number, lineItems: AttributeInput[]): Promise<Cart>;
+
+        /**
+         * Update custom attributes on a checkout based on checkout id
+         */
+        updateAttributes(checkoutId: string | number, input: CustomAttribute[]): Promise<Cart>;
     }
 
     export interface ShopResource {
@@ -292,22 +298,41 @@ declare namespace ShopifyBuy {
         updated_at: string;
     }
 
+    export interface TotalPriceV2 {
+        amount: string;
+        currencyCode: string;
+    }
+
+    export interface SubtotalPriceV2 {
+        amount: string;
+        currencyCode: string;
+    }
+
+    export interface LineItemsSubtotalPrice {
+        amount: string;
+        currencyCode: string;
+    }
+
+    export interface TotalTaxV2 {
+        amount: string;
+        currencyCode: string;
+    }
+
+    export interface PaymentDueV2 {
+        amount: string;
+        currencyCode: string;
+    }
+
     export interface Cart extends GraphModel {
         /**
          * Get checkout URL for current cart
          */
-        checkoutUrl: string;
+        webUrl: string;
 
         /**
          * get ID for current cart
          */
         id: string | number;
-
-        /**
-         * Gets the total quantity of all line items. Example: you've added two variants
-         * with quantities 3 and 2. lineItemCount will be 5.
-         */
-        lineItemCount: number;
 
         /**
          * Get an Array of CartLineItemModel's
@@ -324,66 +349,115 @@ declare namespace ShopifyBuy {
          * Get completed at date.
          */
         completedAt: string | null;
+
+        ready: boolean;
+        requiresShipping: boolean;
+        note: string;
+        paymentDue: string;
+        orderStatusUrl: string;
+        taxExempt: boolean;
+        taxesIncluded: boolean;
+        currencyCode: string;
+        totalTax: string;
+        totalPrice: string;
+        createdAt: string;
+        updatedAt: string;
+        email: string;
+        shippingAddress: string;
+        shippingLine: string;
+        order: string;
+        customAttributes: [string];
+        appliedGiftCards: [string];
+        discountApplications: [string];
+        totalPriceV2: TotalPriceV2;
+        subtotalPriceV2: SubtotalPriceV2;
+        lineItemsSubtotalPrice: LineItemsSubtotalPrice;
+        totalTaxV2: TotalTaxV2;
+        paymentDueV2: PaymentDueV2;
     }
 
+    export interface VariableValues {
+        id: string | number;
+    }
+
+    export interface UnitPriceMeasurement {
+        measuredType: string;
+        quantityUnit: string;
+        quantityValue: number;
+        referenceUnit: string;
+        referenceValue: number;
+    }
+
+    export interface SelectedOption {
+        name: string;
+        value: string;
+    }
+
+    export interface CompareAtPriceV2 {
+        amount: string;
+        currencyCode: string;
+    }
+
+    export interface CompareAtPrice {
+        amount: string;
+        currencyCode: string;
+    }
+
+    export interface Price {
+        amount: string;
+        currencyCode: string;
+    }
+
+    export interface PresentmentPrices {
+        hasNextPage: boolean;
+        hasPreviousPage: boolean;
+        variableValues: VariableValues;
+
+        compareAtPrice: CompareAtPrice;
+        price: Price;
+    }
+
+    export interface PriceV2 {
+        amount: string;
+        currencyCode: string;
+    }
+
+    export interface Variant extends GraphModel {
+        id: string | number;
+        title: string;
+        price: string;
+        weight: number;
+        available: boolean;
+        sku: string;
+        compareAtPrice: string;
+        unitPrice: string;
+
+        product: Product;
+        unitPriceMeasurement: UnitPriceMeasurement;
+        selectedOptions: SelectedOption[];
+        image: Image;
+        compareAtPriceV2: CompareAtPriceV2;
+        presentmentPrices: [PresentmentPrices];
+        priceV2: PriceV2;
+    }
     export interface LineItem extends GraphModel {
-        /**
-         * Compare at price for variant. The compareAtPrice would be the price of the product
-         * previously before the product went on sale.
-         * If no compareAtPrice is set then this value will be null. An example value: "5.00".
-         */
-        compareAtPrice: string | null;
-
-        /**
-         * Variant's weight in grams. If no weight is set then 0 is returned.
-         */
-        grams: number;
-
         /**
          * A line item ID.
          */
         id: string | number;
 
-        /**
-         * Variant's image.
-         */
-        image: Image;
-
-        /**
-         * The total price for this line item. For instance if the variant costs 1.50 and you have a
-         * quantity of 2 then line_price will be 3.00.
-         */
-        linePrice: string;
-
-        /**
-         * Price of the variant. For example: "5.00".
-         */
-        price: string;
-
-        /**
-         * ID of variant's product.
-         */
-        productId: string | number;
-
-        /**
-         * Count of variants to order.
-         */
-        quantity: number;
-
-        /**
-         * Product title of variant's parent product.
-         */
         title: string;
+        quantity: number;
+        hasNextPage: boolean;
+        hasPreviousPage: boolean;
+        variableValues: VariableValues;
 
+        discountAllocations: [string];
+        customAttributes: CustomAttribute[];
         /**
-         * ID of line item variant.
+         * Line item variant.
          */
-        variantId: string | number;
-
-        /**
-         * Title of variant.
-         */
-        variantTitle: string;
+        variant: Variant;
     }
 
     export interface LineItemToAdd {
